@@ -1535,7 +1535,7 @@ div.tocify {
 </div>
 
 
-<p>[1] “This rundown shows how to force the study time to be the same in DICOM files that are definitely from the same series. This may happen due to issues on the scanner side. Also, we show how to put a slice thickness value into the DICOM header and resave the images.”</p>
+<p>This rundown shows how to force the study time to be the same in DICOM files that are definitely from the same series. This may happen due to issues on the scanner side. Also, we show how to put a slice thickness value into the DICOM header and resave the images.</p>
 <div id="data" class="section level1">
 <h1><span class="header-section-number">1</span> Data</h1>
 <div id="data-source" class="section level2">
@@ -1572,15 +1572,15 @@ ex = list(dirs = dirs,
 <p>The output <code>ex</code> has the relevant information.</p>
 <pre class="r"><code>lapply(ex, head)</code></pre>
 <pre><code>$dirs
-[1] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test&quot;
+[1] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test&quot;
 
 $files
-[1] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/73-138.dcm&quot; 
-[2] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/81-146.dcm&quot; 
-[3] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/4-069.dcm&quot;  
-[4] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/183-248.dcm&quot;
-[5] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/164-229.dcm&quot;
-[6] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5yuFPe/test/208-273.dcm&quot;
+[1] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/73-138.dcm&quot; 
+[2] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/81-146.dcm&quot; 
+[3] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/4-069.dcm&quot;  
+[4] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/183-248.dcm&quot;
+[5] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/164-229.dcm&quot;
+[6] &quot;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/208-273.dcm&quot;
 
 $out_file
 [1] &quot;test.zip&quot;</code></pre>
@@ -1613,15 +1613,15 @@ sub_bracket = function(x) {
 <pre class="r"><code>library(dcmtk)
 all_hdrs = dcmtk::read_dicom_header(path = ex$dirs[1],
                                     recursive = TRUE)</code></pre>
-<pre><code>/usr/local/bin/dcmdump -q --print-all --load-short --print-filename --recurse --scan-directories &#39;/private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test&#39; --scan-pattern  *.dcm </code></pre>
+<pre><code>/usr/local/bin/dcmdump -q --print-all --load-short --print-filename --recurse --scan-directories &#39;/private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test&#39; --scan-pattern  *.dcm </code></pre>
 <pre class="r"><code>head(all_hdrs)</code></pre>
 <pre><code>                                                                                  file
-7  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
-8  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
-9  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
-10 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
-11 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
-12 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/test/73-138.dcm
+7  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+8  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+9  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+10 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+11 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+12 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
            tag val_rep
 7  (0002,0000)      UL
 8  (0002,0001)      OB
@@ -1674,7 +1674,7 @@ colnames(wide)</code></pre>
 result = dcm2nii(basedir = ex$dirs[1])</code></pre>
 <pre><code>#Copying Files</code></pre>
 <pre><code># Converting to nii </code></pre>
-<pre><code>&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -v 1 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/file161f97d3e0062&#39;</code></pre>
+<pre><code>&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -v 1 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca6ae2efb2&#39;</code></pre>
 <pre class="r"><code>length(result$nii_after)</code></pre>
 <pre><code>[1] 5</code></pre>
 </div>
@@ -1736,7 +1736,7 @@ mod_result = mapply(add_slice_thickness, tmp_paths, thicknesses)</code></pre>
 length(amended_result$nii_after)</code></pre>
 <pre><code>[1] 5</code></pre>
 <pre class="r"><code>amended_result$cmd</code></pre>
-<pre><code>[1] &quot;&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -m y  -v 0 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/file161f9a379632&#39;&quot;</code></pre>
+<pre><code>[1] &quot;&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -m y  -v 0 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca660d001&#39;&quot;</code></pre>
 </div>
 </div>
 </div>
@@ -1786,7 +1786,7 @@ amended_result = dcm2nii(basedir = tdir, merge_files = TRUE, verbose = FALSE)
 length(amended_result$nii_after)</code></pre>
 <pre><code>[1] 1</code></pre>
 <pre class="r"><code>amended_result$cmd</code></pre>
-<pre><code>[1] &quot;&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -m y  -v 0 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5yuFPe/file161f950bc9ffc&#39;&quot;</code></pre>
+<pre><code>[1] &quot;&#39;/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix&#39; -9  -m y  -v 0 -z y -f %p_%t_%s &#39;/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca6a2edfb8&#39;&quot;</code></pre>
 <pre class="r"><code>img = RNifti::readNifti(amended_result$nii_after[1])
 img</code></pre>
 <pre><code>Image array of mode &quot;integer&quot; (12 Mb)
