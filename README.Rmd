@@ -46,5 +46,7 @@ df = df %>%
 df = df %>% 
   mutate(Description = parse_description(file)) %>% 
   ungroup()
+df = df %>% 
+  select(-file)
 knitr::kable(df, escape = FALSE)
 ```
