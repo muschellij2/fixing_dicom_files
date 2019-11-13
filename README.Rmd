@@ -31,7 +31,7 @@ parse_title = function(file) {
   parser(file)$title
 }
 parse_description = function(file) {
-  parser(file)$description
+  parser(file)$params$desciption
 }
 rmds = list.files(pattern = "index.Rmd", recursive = TRUE)
 rmds = setdiff(rmds, "README.Rmd")

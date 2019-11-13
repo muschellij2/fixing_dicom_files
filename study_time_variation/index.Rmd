@@ -1,7 +1,8 @@
 ---
 title: "Study Time Variation"
 author: "John Muschelli"
-description: "This rundown shows how to force the study time to be the same in DICOM files that are definitely from the same series.  This may happen due to issues on the scanner side.  Also, we show how to put a slice thickness value into the DICOM header and resave the images."
+params:
+  description: "This rundown shows how to force the study time to be the same in DICOM files that are definitely from the same series.  This may happen due to issues on the scanner side.  Also, we show how to put a slice thickness value into the DICOM header and resave the images."
 date: "`r Sys.Date()`"
 output: 
   html_document:
@@ -15,29 +16,82 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, comment = "")
 ```
 
-The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip
+```{r, results = "asis", echo = FALSE}
+params$description
+```
 
-Overall, this issue is to show users how to potentially fix some DICOM 
-data if slice thickness or study time is messed up but should be consistently
-the same.
 
-# Load Libraries
-
-```{r}
+```{r, echo = FALSE, message=FALSE}
 library(TCIApathfinder)
 library(dcm2niir)
 library(dcmtk)
 library(RNifti)
 library(neurobase)
 library(dplyr)
+library(readr)
+```
+
+# Data
+
+## Data Source
+
+The data example is from TCIA located at https://wiki.cancerimagingarchive.net/display/Public/Pancreas-CT
+
+Holger R. Roth, Amal Farag, Evrim B. Turkbey, Le Lu, Jiamin Liu, and Ronald M. Summers. (2016). Data From Pancreas-CT. The Cancer Imaging Archive. http://doi.org/10.7937/K9/TCIA.2016.tNB1kqBU
+
+Clark K, Vendt B, Smith K, Freymann J, Kirby J, Koppel P, Moore S, Phillips S, Maffitt D, Pringle M, Tarbox L, Prior F. The Cancer Imaging Archive (TCIA): Maintaining and Operating a Public Information Repository, Journal of Digital Imaging, Volume 26, Number 6, December, 2013, pp 1045-1057. [paper](http://link.springer.com/article/10.1007%2Fs10278-013-9622-7)
+
+## Getting the Data
+
+You can download the data from TCIA. If you do not have an API key, below is a simple zip file with a small subset of the data. The
+data is from https://wiki.cancerimagingarchive.net/display/Public/Pancreas-CT
+
+
+```{r, eval = FALSE, echo = TRUE}
+library(TCIApathfinder)
+
+if (nzchar("TCIA_API_KEY")) {
+  series_id = "1.2.826.0.1.3680043.2.1125.1.68878959984837726447916707551399667"
+  ex = save_extracted_image_series(series_id)
+  ex$response = NULL
+  length(ex$dirs)
+  lapply(ex, head)
+}
+```
+
+
+The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip
+
+```{r}
+destfile = "test.zip"
+if (!file.exists(destfile)) {
+  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip"
+  destfile = tempfile(fileext = ".zip")
+  dl = download.file(tarfile, destfile = destfile)
+}
+outdir = tempdir()
+result = unzip(destfile, exdir = outdir)
+dirs = unique(dirname(result))
+ex = list(dirs = dirs,
+          files = result,
+          out_file = destfile)
+```
+
+The output `ex` has the relevant information.
+
+```{r}
+lapply(ex, head)
 ```
 
 ## Helper Functions
 
+In order to parse some information on the DICOM header, we need some helper functions:
+
 ```{r}
+library(readr)
 parse_number_no_na = function(x) {
   x[ x %in% c("-", "-", "N/A")] = NA
   na_x = is.na(x)
@@ -54,55 +108,34 @@ sub_bracket = function(x) {
 }
 ```
 
-# Download Data
+# Getting Header information
 
-Downloading the data from TCIA. If you do not have an API key, I have
-attached a simple zip file with a small subset of the data. The
-data is from https://wiki.cancerimagingarchive.net/display/Public/Pancreas-CT
-The output `ex` has the relevant information.
+## Header Problems 
 
-```{r}
-if (nzchar("TCIA_API_KEY")) {
-  series_id = "1.2.826.0.1.3680043.2.1125.1.68878959984837726447916707551399667"
-  ex = save_extracted_image_series(series_id)
-  ex$response = NULL
-  length(ex$dirs)
-  lapply(ex, head)
-} else {
-  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip"
-  destfile = tempfile(fileext = ".zip")
-  dl = download.file(tarfile, destfile = destfile)
-  outdir = tempdir()
-  result = unzip(destfile, exdir = outdir)
-  dirs = unique(dirname(result))
-  ex = list(dirs = dirs,
-            files = result,
-            out_file = destfile)
-}
-```
-
-## Getting Header information
-
-Here we see Slice Thickness has been removed.
+Here we see Slice Thickness has been removed as it is no longer in the header.  The 
+`read_dicom_header` reads in the DICOM files and returns the header (not pixel data) where each row is a file-tag combination and the `wide_hdr` reshapes the data so that each column is a different tag:
 
 ```{r}
+library(dcmtk)
 all_hdrs = dcmtk::read_dicom_header(path = ex$dirs[1],
                                     recursive = TRUE)
+head(all_hdrs)
 wide = dcmtk::wide_hdr(all_hdrs)
 colnames(wide)
 wide$SliceThickness
 ```
 
-We get some warnings about slice thickness as well as the study
-time being different:
+We get some warnings about slice thickness as well as the study time being different:
   
 ```{r}
+library(dcm2niir)
 result = dcm2nii(basedir = ex$dirs[1])
 length(result$nii_after)
 ```
 
-Merging/stacking the data with `-m y` `dcm2niix` output does not
-fix this.
+## Trying to Merge Files
+
+Merging/stacking the data with `-m y` `dcm2niix` output does not fix this.
 
 ```{r}
 result = dcm2nii(basedir = ex$dirs[1], merge_files = TRUE, verbose = FALSE)
@@ -111,10 +144,11 @@ length(result$nii_after)
 
 # Fixing Slice Thickness
 
-Here we will estimate the slice thickness and then modify the DICOM
-headers to fix it
+Here we will estimate the slice thickness and then modify the DICOM headers to fix it.  We sort the data, copy to a temporary directory, and change the files (so we have a backup).
 
 ```{r}
+library(dplyr)
+library(tidyr)
 run_df = wide %>%
   mutate(ipp = gsub("\\\\", ",", ImagePositionPatient)) %>%
   tidyr::separate(ipp, into = c("x", "y", "z"), remove = FALSE, sep = ",") %>%
@@ -132,13 +166,15 @@ stopifnot(length(ust) == 1)
 
 ### Copying data
 
+Here we copy the data to a temporary directory.
+
 ```{r}
 tdir = tempfile()
 dir.create(tdir)
 file.copy(run_df$file, tdir)
 ```
 
-Using `dcmodify` to change the tag values.
+Using `dcmodify` to change the tag values.  The function `add_slice_thickness` takes in a file and the thickness, changes the value based on the `SliceThickness` tag `(0018,0050)` and then reads the data back in to ensure things went well:
 
 ```{r}
 tmp_paths = file.path(tdir, basename(run_df$file))
@@ -162,7 +198,7 @@ thicknesses = rep(ust, length(tmp_paths))
 mod_result = mapply(add_slice_thickness, tmp_paths, thicknesses)
 ```
 
-Trying to stack the data, still similar result
+Trying to stack the data, we still get a similar result as above and things are not correct.
 
 ```{r}
 amended_result = dcm2nii(basedir = tdir, merge_files = TRUE, verbose = FALSE)
@@ -172,7 +208,7 @@ amended_result$cmd
 
 # Fixing Study Time
 
-Copy the data
+We see that the slice thickness was not the true issue, but study time, which needs to be the same within a series.  Hence we will use the same strategy as above but will change the `StudyTime` tag:
 
 ```{r}
 tdir = tempfile()
@@ -180,14 +216,14 @@ dir.create(tdir)
 file.copy(run_df$file, tdir)
 ```
 
-The date is correct, but the time is slightly varying:
+Investigating the data, the date is consistent, but the time is slightly varying:
   
 ```{r}
 unique(run_df$StudyDate)
 unique(run_df$StudyTime)
 ```
 
-Change all to the first time
+Here we change all DICOM `StudyTime`s to the first time using the `StudyTime` tag `(0008,0030)`:
 
 ```{r}
 st = run_df$StudyTime[1]
@@ -215,9 +251,11 @@ thicknesses = rep(ust, length(tmp_paths))
 mod_result = mapply(add_study_time, tmp_paths, thicknesses)
 ```
 
-Output result is correct
+We see now that the output result is stacked correctly and has all the files:
 
-```{r}
+```{r output}
+library(RNifti)
+library(neurobase)
 amended_result = dcm2nii(basedir = tdir, merge_files = TRUE, verbose = FALSE)
 length(amended_result$nii_after)
 amended_result$cmd
@@ -227,6 +265,10 @@ img
 ortho2(img)
 ```
 
-![](https://i.imgur.com/TcruLi6.png)
+# Package Information
 
-<sup>Created on 2019-11-07 by the [reprex package](https://reprex.tidyverse.org) (v0.3.0.9000)</sup>
+Here is my session information to ensure reproducibility for packges:
+```{r session_info, include=TRUE, echo=FALSE, results='markup'}
+sessioninfo::session_info()
+```
+
