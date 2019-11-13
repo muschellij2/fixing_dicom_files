@@ -1,0 +1,46 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Fixing DICOM Files
+
+<!-- badges: start -->
+<!-- badges: end -->
+
+The goal of this repository is to fix some problems with problematic DICOM files. 
+The end goal is likely to convert these DICOM files into a NIfTI image using [`dcm2niix`](https://github.com/rordenlab/dcm2niix).  
+
+```{r, echo = FALSE, message=FALSE}
+library(dplyr)
+library(yaml)
+parser = function(file) {
+  rmarkdown:::parse_yaml_front_matter(
+    readLines(file)
+  )
+}
+parse_title = function(file) {
+  parser(file)$title
+}
+parse_description = function(file) {
+  parser(file)$description
+}
+rmds = list.files(pattern = "index.Rmd", recursive = TRUE)
+rmds = setdiff(rmds, "README.Rmd")
+links = paste0("[Link](https://johnmuschelli.com/fixing_dicom_files/", 
+                   dirname(rmds), ")")
+df = tibble::tibble(
+  file = rmds,
+  link = links) %>% 
+  mutate(Title = parse_title(file),
+         Description = parse_description(file))
+knitr::kable(df, escape = FALSE)
+```

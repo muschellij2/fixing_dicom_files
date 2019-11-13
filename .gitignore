@@ -1,0 +1,13 @@
+dataset_psgnewcastle2015_v1.0.zip
+.Rproj.user
+.Rhistory
+png/
+nifti/
+body/
+template_slices/
+stage_1_train_images/
+*.csv.gz 
+*.csv.zip
+send_to_cluster.sh
+*.rds
+predictions/
