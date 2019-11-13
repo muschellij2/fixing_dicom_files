@@ -31,7 +31,7 @@ parse_title = function(file) {
   parser(file)$title
 }
 parse_description = function(file) {
-  parser(file)$params$desciption
+  parser(file)$params$description
 }
 rmds = list.files(pattern = "index.Rmd", recursive = TRUE)
 rmds = setdiff(rmds, "README.Rmd")
@@ -39,8 +39,12 @@ links = paste0("[Link](https://johnmuschelli.com/fixing_dicom_files/",
                    dirname(rmds), ")")
 df = tibble::tibble(
   file = rmds,
-  link = links) %>% 
-  mutate(Title = parse_title(file),
-         Description = parse_description(file))
+  link = links) 
+df = df %>% 
+  group_by(file) %>% 
+  mutate(Title = parse_title(file)) 
+df = df %>% 
+  mutate(Description = parse_description(file)) %>% 
+  ungroup()
 knitr::kable(df, escape = FALSE)
 ```
