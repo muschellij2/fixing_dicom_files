@@ -19,6 +19,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE, comment = "")
 ```
 
+# Description 
+
 ```{r, results = "asis", echo = FALSE}
 cat(params$description)
 ```
@@ -63,12 +65,12 @@ if (nzchar("TCIA_API_KEY")) {
 ```
 
 
-The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip
+The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/data.zip
 
 ```{r}
-destfile = "test.zip"
+destfile = "data.zip"
 if (!file.exists(destfile)) {
-  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip"
+  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/data.zip"
   destfile = tempfile(fileext = ".zip")
   dl = download.file(tarfile, destfile = destfile)
 }
@@ -265,10 +267,14 @@ img
 ortho2(img)
 ```
 
-# Package Information
+<details>
 
-Here is my session information to ensure reproducibility for packges:
+<summary>Session info</summary>
+
+Here is my session information to ensure reproducibility for packages:
+
 ```{r session_info, include=TRUE, echo=FALSE, results='markup'}
 sessioninfo::session_info()
 ```
 
+</details>

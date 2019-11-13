@@ -1,0 +1,240 @@
+---
+title: "Adding Instance Number"
+author: "John Muschelli"
+params:
+  description: "This rundown shows how to add the instance number to a DICOM data set, using ImagePositionPatient to have the data to stack correctly."
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    keep_md: true
+    theme: cosmo
+    toc: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+    number_sections: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+```
+
+# Description 
+
+```{r, results = "asis", echo = FALSE}
+cat(params$description)
+```
+
+
+
+# Load up Packages
+
+```{r}
+library(dcm2niir)
+library(dcmtk)
+library(readr)
+library(dplyr)
+library(tidyr)
+library(neurobase)
+```
+
+# Data
+
+
+The data is located at https://johnmuschelli.com/fixing_dicom_files/add_instance_number/data.zip
+
+
+## Download the data
+
+```{r}
+destfile = "data.zip"
+if (!file.exists(destfile)) {
+  url = "https://johnmuschelli.com/fixing_dicom_files/add_instance_number/data.zip"
+  destfile = tempfile(fileext = ".zip")
+  download.file(url, destfile)
+}
+```
+
+My version of `dcm2niix` is the most up to date GitHub built from source:
+
+```{r}
+dcm2nii_version()
+```
+
+If not, you can run `install_dcm2nii(from_source = TRUE, overwrite = TRUE)`. 
+
+Here we are unzipping the data to a temporary file so we can sandbox our changes to the data:
+
+```{r}
+exdir = tempfile()
+dir.create(exdir)
+unzip(destfile, exdir = exdir)
+paths = list.files(pattern = ".dcm", path = exdir, full.names = TRUE)
+```
+
+Here is the header information:
+
+```{r}
+# showing the image position patient
+hdr = read_dicom_header(path = exdir, recursive = TRUE)
+wide = wide_hdr(hdr)
+
+sort(unique(hdr$name))
+```
+
+## Helper Functions
+
+In order to parse some information on the DICOM header, we need some helper functions:
+
+```{r}
+library(readr)
+parse_number_no_na = function(x) {
+  x[ x %in% c("-", "-", "N/A")] = NA
+  na_x = is.na(x)
+  x = readr::parse_number(x, na = "")
+  bad = is.na(x) & !na_x
+  stopifnot(!any(bad))
+  x
+}
+
+sub_bracket = function(x) {
+  x = sub("^\\[", "", x)
+  x = sub("\\]$", "", x)
+  x = trimws(x)
+}
+```
+
+## DICOM Headers are missing
+
+```{r}
+# no gantry tilt DICOM header!
+any(grepl("ilt", tolower(hdr$name)))
+any(grepl("instancenum", tolower(hdr$name)))
+
+wide = wide %>% 
+  mutate(ipp = sub_bracket(gsub("\\\\", ",", ImagePositionPatient))) %>% 
+  tidyr::separate(ipp, into = c("x", "y", "z"), remove = FALSE, sep = ",") %>% 
+  mutate_at(vars(x, y, z), parse_number_no_na)
+
+# order by z
+wide = wide %>% 
+  select(file, x, y, z, ipp) %>% 
+  arrange(z)
+```
+
+Showing the image position patients (ordered for instance number later)
+
+```{r}
+wide %>% 
+  mutate(file = basename(file)) %>% 
+  select(file, x, y, z) %>% 
+  as.data.frame
+```
+
+Here is the output of `dcm2niix` on the original data
+
+```{r out1}
+d_res = dcm2nii(
+  basedir = exdir,
+  opts = " -v y ")
+d_res
+img = readnii(d_res$nii_after)
+dim(img)
+ortho2(window_img(img))
+```
+
+
+Let's look at the last slice:
+
+```{r last_slice}
+ortho2(window_img(img), xyz = c(202, 215, 1))
+```
+
+# Fixing the Instance Number
+
+## Copy the data
+
+Here we are copying the data to a different folder to make instance number
+
+```{r}
+tmpdir = tempfile()
+dir.create(tmpdir)
+file.copy(paths, tmpdir)
+```
+
+## Modifying the Instance Number
+
+Here we are making the instance number spatial on z, modifying the instance number using the tag `(0020,0013)`: 
+
+```{r}
+tmp_paths = file.path(tmpdir, basename(wide$file))
+ind = seq_along(tmp_paths)
+add_instance = function(file, index) {
+  dcmtk::dcmodify(
+    file = file,
+    frontopts = paste0('-i "(0020,0013)=', index, '"')
+  )
+  hdr = read_dicom_header(file)
+  new_inst = as.numeric(sub_bracket(hdr$value[hdr$name == "InstanceNumber"]))
+  stopifnot(new_inst == index)
+  print(new_inst)
+  bakfile = paste0(file, ".bak")
+  if (file.exists(bakfile)) {
+    file.remove(bakfile)
+  }
+}
+res = mapply(add_instance, tmp_paths, ind)
+```
+
+Checking the instance number is correct:
+
+```{r}
+tmp_hdr = lapply(tmp_paths, read_dicom_header)
+tmp_hdr = bind_rows(tmp_hdr)
+# arranging because reshaping can cause reordering of files
+tmp_hdr = tmp_hdr %>% 
+  mutate(file = factor(tmp_hdr$file, levels = tmp_paths)) %>% 
+  arrange(file)
+tmp_wide = wide_hdr(tmp_hdr)
+tmp_wide$InstanceNumber
+```
+
+Checking the output with filled in instance number
+
+```{r}
+inst_res = dcm2nii(
+  basedir = tmpdir,
+  # files = tmp_paths,
+  opts = " -v y ")
+inst_res
+inst_img = readnii(inst_res$nii_after)
+dim(inst_img)
+```
+
+## Correct Output 
+
+Note the last slice:
+
+```{r correct_output}
+ortho2(window_img(inst_img))
+```
+
+
+Let's look at the last slice:
+
+```{r, last_output}
+ortho2(window_img(inst_img), xyz = c(202, 215, 1))
+```
+
+
+<details>
+
+<summary>Session info</summary>
+
+Here is my session information to ensure reproducibility for packages:
+
+```{r}
+devtools::session_info()
+```
+
+</details>

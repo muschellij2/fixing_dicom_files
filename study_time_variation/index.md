@@ -17,6 +17,8 @@ output:
 
 
 
+# Description 
+
 This rundown shows how to force the study time to be the same in DICOM files that are definitely from the same series.  This may happen due to issues on the scanner side.  Also, we show how to put a slice thickness value into the DICOM header and resave the images.
 
 
@@ -52,13 +54,13 @@ if (nzchar("TCIA_API_KEY")) {
 ```
 
 
-The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip
+The data is located at https://johnmuschelli.com/fixing_dicom_files/study_time_variation/data.zip
 
 
 ```r
-destfile = "test.zip"
+destfile = "data.zip"
 if (!file.exists(destfile)) {
-  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/test.zip"
+  tarfile = "https://johnmuschelli.com/fixing_dicom_files/study_time_variation/data.zip"
   destfile = tempfile(fileext = ".zip")
   dl = download.file(tarfile, destfile = destfile)
 }
@@ -79,18 +81,18 @@ lapply(ex, head)
 
 ```
 $dirs
-[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test"
+[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test"
 
 $files
-[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/73-138.dcm" 
-[2] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/81-146.dcm" 
-[3] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/4-069.dcm"  
-[4] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/183-248.dcm"
-[5] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/164-229.dcm"
-[6] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp5pmZcL/test/208-273.dcm"
+[1] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/73-138.dcm" 
+[2] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/81-146.dcm" 
+[3] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/4-069.dcm"  
+[4] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/183-248.dcm"
+[5] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/164-229.dcm"
+[6] "/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T//Rtmp1nbeFx/test/208-273.dcm"
 
 $out_file
-[1] "test.zip"
+[1] "data.zip"
 ```
 
 ## Helper Functions
@@ -131,7 +133,7 @@ all_hdrs = dcmtk::read_dicom_header(path = ex$dirs[1],
 ```
 
 ```
-/usr/local/bin/dcmdump -q --print-all --load-short --print-filename --recurse --scan-directories '/private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test' --scan-pattern  *.dcm 
+/usr/local/bin/dcmdump -q --print-all --load-short --print-filename --recurse --scan-directories '/private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test' --scan-pattern  *.dcm 
 ```
 
 ```r
@@ -140,12 +142,12 @@ head(all_hdrs)
 
 ```
                                                                                   file
-7  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
-8  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
-9  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
-10 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
-11 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
-12 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/test/73-138.dcm
+7  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
+8  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
+9  /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
+10 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
+11 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
+12 /private/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/test/73-138.dcm
            tag val_rep
 7  (0002,0000)      UL
 8  (0002,0001)      OB
@@ -227,7 +229,7 @@ result = dcm2nii(basedir = ex$dirs[1])
 ```
 
 ```
-'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -v 1 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca6ae2efb2'
+'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -v 1 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/file16b434dfbf453'
 ```
 
 ```r
@@ -332,7 +334,7 @@ amended_result$cmd
 ```
 
 ```
-[1] "'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -m y  -v 0 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca660d001'"
+[1] "'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -m y  -v 0 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/file16b4360c3285b'"
 ```
 
 # Fixing Study Time
@@ -420,7 +422,7 @@ amended_result$cmd
 ```
 
 ```
-[1] "'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -m y  -v 0 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp5pmZcL/file163ca6a2edfb8'"
+[1] "'/Library/Frameworks/R.framework/Versions/3.6/Resources/library/dcm2niir/dcm2niix' -9  -m y  -v 0 -z y -f %p_%t_%s '/var/folders/1s/wrtqcpxn685_zk570bnx9_rr0000gr/T/Rtmp1nbeFx/file16b434426e475'"
 ```
 
 ```r
@@ -440,9 +442,12 @@ ortho2(img)
 
 ![](index_files/figure-html/output-1.png)<!-- -->
 
-# Package Information
+<details>
 
-Here is my session information to ensure reproducibility for packges:
+<summary>Session info</summary>
+
+Here is my session information to ensure reproducibility for packages:
+
 
 ```
 ─ Session info ──────────────────────────────────────────────────────────
@@ -566,3 +571,4 @@ Here is my session information to ensure reproducibility for packges:
 [1] /Library/Frameworks/R.framework/Versions/3.6/Resources/library
 ```
 
+</details>
